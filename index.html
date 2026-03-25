@@ -574,6 +574,105 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ===== WILL MODAL ===== */
+  .will-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+  }
+  .will-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+  .will-modal {
+    background: #f5f0e6;
+    background-image: linear-gradient(to bottom, #f5f0e6, #ebe4d4);
+    max-width: 650px;
+    width: 100%;
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    padding: 2.5rem 2rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    color: #2c2416;
+    position: relative;
+  }
+  .will-modal h2 {
+    font-family: 'Libre Baskerville', serif;
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .will-modal .will-subtitle {
+    text-align: center;
+    font-style: italic;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+  .will-modal .will-intro {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: #555;
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+  }
+  .will-modal label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #1a3a5c;
+  }
+  .will-modal input[type="text"],
+  .will-modal textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    background: #fff;
+  }
+  .will-modal textarea { min-height: 70px; resize: vertical; }
+  .will-modal .will-field { margin-bottom: 1.2rem; }
+  .will-modal .legal-text {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #777;
+    line-height: 1.5;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    background: #faf8f3;
+  }
+  .will-modal .will-sign {
+    border-top: 2px solid #2c2416;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+  .will-submit-btn {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 1.5rem;
+  }
+  .will-submit-btn:hover { background: var(--accent-light); }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 700px) {
     #title-screen h1 { font-size: 2.2rem; }
@@ -1549,6 +1648,17 @@ function makeChoice(sceneId, choiceIndex) {
 
   if (choice.effect) choice.effect();
 
+  // Show will modal after bus choice (scene3)
+  if (sceneId === 'scene3') {
+    state._pendingChoice = choice;
+    showWillModal();
+    return;
+  }
+
+  applyChoice(choice);
+}
+
+function applyChoice(choice) {
   const container = document.getElementById('game-container');
   const choicesEl = container.querySelector('.choices');
   if (choicesEl) {
@@ -1561,6 +1671,42 @@ function makeChoice(sceneId, choiceIndex) {
   }
 }
 
+function showWillModal() {
+  document.getElementById('will-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function submitWill() {
+  const signature = document.getElementById('will-signature').value.trim();
+  if (!signature) {
+    alert('You must sign the will before you can board the bus.');
+    document.getElementById('will-signature').focus();
+    return;
+  }
+
+  // Save will data to state
+  state.will = {
+    fullName: document.getElementById('will-fullname').value.trim(),
+    age: document.getElementById('will-age').value.trim(),
+    hometown: document.getElementById('will-hometown').value.trim(),
+    assets: document.getElementById('will-assets').value.trim(),
+    beneficiary: document.getElementById('will-beneficiary').value.trim(),
+    funeral: document.getElementById('will-funeral').value.trim(),
+    message: document.getElementById('will-message').value.trim(),
+    signature: signature
+  };
+
+  // Close modal
+  document.getElementById('will-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+
+  // Continue with the pending choice
+  if (state._pendingChoice) {
+    applyChoice(state._pendingChoice);
+    state._pendingChoice = null;
+  }
+}
+
 function restartGame() {
   freedomAudio.pause();
   freedomAudio.currentTime = 0;
@@ -1570,6 +1716,7 @@ function restartGame() {
   state.busChoice = null;
   state.decisions = [];
   state.visitedStops = [];
+  state.will = null;
 
   document.getElementById('map-panel').classList.remove('active');
   document.getElementById('game-container').classList.remove('active');
@@ -1732,6 +1879,18 @@ function savePDF() {
 <h2>Simulation Choices</h2>
 <table>${choicesHtml}</table>
 
+${state.will ? `
+<h2>Last Will &amp; Testament</h2>
+<div style="font-size:10pt;line-height:1.6;padding:12px;border:1px solid #ddd;background:#faf8f3;margin-bottom:16px">
+  <p><strong>Name:</strong> ${state.will.fullName} &nbsp;&nbsp; <strong>Age:</strong> ${state.will.age} &nbsp;&nbsp; <strong>Hometown:</strong> ${state.will.hometown}</p>
+  ${state.will.assets ? `<p><strong>Assets:</strong> ${state.will.assets}</p>` : ''}
+  ${state.will.beneficiary ? `<p><strong>Beneficiary:</strong> ${state.will.beneficiary}</p>` : ''}
+  ${state.will.funeral ? `<p><strong>Funeral Arrangements:</strong> ${state.will.funeral}</p>` : ''}
+  ${state.will.message ? `<p><strong>Final Message:</strong> ${state.will.message}</p>` : ''}
+  <p style="margin-top:12px;font-style:italic;border-top:1px solid #ccc;padding-top:8px"><strong>Signed:</strong> ${state.will.signature}</p>
+</div>
+` : ''}
+
 <h2>Reflection Questions</h2>
 
 <div class="question">
@@ -1767,6 +1926,66 @@ function savePDF() {
   }, 600);
 }
 </script>
+
+<!-- Will Modal -->
+<div class="will-overlay" id="will-overlay">
+  <div class="will-modal">
+    <h2>Last Will &amp; Testament</h2>
+    <div class="will-subtitle">Congress of Racial Equality &mdash; Freedom Ride, 1961</div>
+
+    <div class="will-intro">
+      Before departure, each Freedom Rider was asked to prepare a last will and testament. This was not a formality. CORE organizers believed there was a real possibility that riders would not return. By completing this document, you acknowledge the risks ahead and the courage required to board that bus.
+    </div>
+
+    <div class="will-field">
+      <label for="will-fullname">Full Legal Name</label>
+      <input type="text" id="will-fullname" placeholder="Your full name">
+    </div>
+
+    <div class="will-field">
+      <label for="will-age">Age</label>
+      <input type="text" id="will-age" placeholder="Your age">
+    </div>
+
+    <div class="will-field">
+      <label for="will-hometown">Hometown</label>
+      <input type="text" id="will-hometown" placeholder="City and State">
+    </div>
+
+    <div class="will-field">
+      <label for="will-assets">Personal Property &amp; Assets</label>
+      <textarea id="will-assets" placeholder="List any possessions or assets you wish to pass on (e.g., savings, books, car, clothing, personal items)..."></textarea>
+    </div>
+
+    <div class="will-field">
+      <label for="will-beneficiary">Beneficiary — Who Should Receive Your Assets?</label>
+      <textarea id="will-beneficiary" placeholder="Name the person(s) who should receive your property and their relationship to you (e.g., 'My mother, Dorothy Smith' or 'My brother James, my sister Mary — split equally')..."></textarea>
+    </div>
+
+    <div class="will-field">
+      <label for="will-funeral">Funeral Arrangements &amp; Final Wishes</label>
+      <textarea id="will-funeral" placeholder="Describe any wishes regarding your funeral, burial, or memorial (e.g., 'I wish to be buried in my hometown' or 'I want my church choir to sing at my service')..."></textarea>
+    </div>
+
+    <div class="will-field">
+      <label for="will-message">Final Message to Your Family</label>
+      <textarea id="will-message" placeholder="If the worst should happen, what do you want your family to know?"></textarea>
+    </div>
+
+    <div class="legal-text">
+      I, the undersigned, being of sound mind and body, do hereby declare this to be my Last Will and Testament. I make this declaration freely and voluntarily, with full knowledge of the dangers inherent in the journey I am about to undertake. I revoke all previous wills and codicils. I direct that my personal property and effects be distributed as outlined above. I appoint the Congress of Racial Equality (CORE) as executor of this will in the event that no family member is available to serve in that capacity. This document shall be governed by the laws of the District of Columbia.
+    </div>
+
+    <div class="will-sign">
+      <div class="will-field">
+        <label for="will-signature">Signature (Type Your Full Name to Sign)</label>
+        <input type="text" id="will-signature" placeholder="Type your full name to sign this document">
+      </div>
+    </div>
+
+    <button class="will-submit-btn" onclick="submitWill()">I Understand the Risks. I Choose to Ride.</button>
+  </div>
+</div>
 
 </body>
 </html>
