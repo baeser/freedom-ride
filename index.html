@@ -408,6 +408,11 @@
 
   .continue-btn:hover { background: #24506e; }
 
+  .nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
   .back-btn {
     display: inline-block;
     background: none;
@@ -418,7 +423,6 @@
     font-size: 0.85rem;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 1rem;
     transition: all 0.2s;
   }
   .back-btn:hover {
@@ -993,7 +997,9 @@ const state = {
   busChoice: null,
   decisions: [],
   visitedStops: [],
-  sceneHistory: []
+  sceneHistory: [],
+  forwardHistory: [],
+  reachedEpilogue: false
 };
 
 // ============================================================
@@ -1766,9 +1772,19 @@ function renderScene(sceneId) {
 
   let html = '<div class="fade-in">';
 
-  // Back button (not on scene1)
+  // Track if epilogue reached
+  if (scene.isEpilogue) {
+    state.reachedEpilogue = true;
+  }
+
+  // Navigation buttons
   if (sceneId !== 'scene1') {
+    html += `<div class="nav-buttons">`;
     html += `<button class="back-btn" onclick="goBack()">&larr; Back</button>`;
+    if (state.reachedEpilogue && state.forwardHistory.length > 0) {
+      html += `<button class="back-btn forward-btn" onclick="goForward()">Forward &rarr;</button>`;
+    }
+    html += `</div>`;
   }
 
   if (scene.location) {
@@ -1922,13 +1938,18 @@ function submitWill() {
 
 function goBack() {
   if (state.sceneHistory.length > 1) {
-    state.sceneHistory.pop(); // remove current
+    const currentScene = state.sceneHistory.pop();
+    state.forwardHistory.push(currentScene);
     const prevScene = state.sceneHistory[state.sceneHistory.length - 1];
-    // Remove the last decision if we're going back from a choice
-    if (state.decisions.length > 0) {
-      state.decisions.pop();
-    }
     renderScene(prevScene);
+  }
+}
+
+function goForward() {
+  if (state.forwardHistory.length > 0) {
+    const nextScene = state.forwardHistory.pop();
+    state.sceneHistory.push(nextScene);
+    renderScene(nextScene);
   }
 }
 
@@ -1979,6 +2000,8 @@ function restartGame() {
   state.decisions = [];
   state.visitedStops = [];
   state.sceneHistory = [];
+  state.forwardHistory = [];
+  state.reachedEpilogue = false;
   state.will = null;
 
   document.getElementById('map-panel').classList.remove('active');
