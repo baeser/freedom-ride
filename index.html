@@ -748,6 +748,116 @@
   }
   .video-close-btn:hover { background: var(--accent-light); }
 
+  /* ===== BERGMAN MODAL ===== */
+  .bergman-link {
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .bergman-link:hover { color: var(--accent-light); }
+  .bergman-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1100;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+  }
+  .bergman-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .bergman-modal {
+    background: #f5f0e6;
+    background-image: linear-gradient(to bottom, #f5f0e6, #ebe4d4);
+    max-width: 750px;
+    width: 100%;
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    padding: 2.5rem 2rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    color: #2c2416;
+    margin: 1rem auto;
+  }
+  .bergman-modal h2 {
+    font-family: 'Libre Baskerville', serif;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    color: var(--accent);
+  }
+  .bergman-modal h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #3c1e0a;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 0.3rem;
+  }
+  .bergman-modal p {
+    line-height: 1.7;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+  }
+  .bergman-photos {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .bergman-photos figure {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
+    text-align: center;
+  }
+  .bergman-photos img {
+    width: 100%;
+    border-radius: 4px;
+    border: 2px solid rgba(0,0,0,0.15);
+  }
+  .bergman-photos figcaption {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.3rem;
+    font-style: italic;
+  }
+  .bergman-fbi {
+    margin: 1rem 0;
+    text-align: center;
+  }
+  .bergman-fbi img {
+    max-width: 100%;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    margin: 0.5rem 0;
+  }
+  .bergman-fbi figcaption {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+  }
+  .bergman-close-btn {
+    display: block;
+    margin: 1.5rem auto 0;
+    padding: 0.7rem 2.5rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .bergman-close-btn:hover { background: var(--accent-light); }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 700px) {
     #title-screen h1 { font-size: 2.2rem; }
@@ -1572,7 +1682,7 @@ epilogue: {
         <li><strong><a href="https://nmaahc.si.edu/explore/stories/john-lewis" target="_blank" rel="noopener">John Lewis</a></strong> went on to serve 33 years in the United States Congress, representing Georgia's 5th district until his death in 2020. He called the Freedom Rides the most important thing he ever did.</li>
         <li><strong><a href="https://awpc.cattcenter.iastate.edu/directory/diane-nash" target="_blank" rel="noopener">Diane Nash</a></strong> continued to be one of the most important strategists of the Civil Rights Movement, helping to plan the 1963 Birmingham campaign and the Selma voting rights movement.</li>
         <li><strong><a href="https://www.thecongressofracialequality.org/james-farmer.html" target="_blank" rel="noopener">James Farmer</a></strong> continued to lead CORE and later served as Assistant Secretary of Health, Education, and Welfare.</li>
-        <li><strong>Many riders</strong> suffered lasting physical injuries, PTSD, and economic retaliation. Some lost jobs, scholarships, and family relationships. Most said they would do it again.</li>
+        <li><strong><a href="#" onclick="openBergmanModal(); return false;" class="bergman-link">Dr. Walter Bergman</a></strong> and his wife <strong><a href="#" onclick="openBergmanModal(); return false;" class="bergman-link">Frances Bergman</a></strong>, retired public school teachers from Detroit, Michigan, were among the oldest Freedom Riders. Walter was beaten so severely in Anniston and Birmingham that he suffered a stroke and was confined to a wheelchair for the rest of his life. Click their names to read their full story.</li>
       </ul>
     </div>
 
@@ -1849,6 +1959,16 @@ function closeVideoModal() {
     applyChoice(state._pendingChoice);
     state._pendingChoice = null;
   }
+}
+
+function openBergmanModal() {
+  document.getElementById('bergman-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBergmanModal() {
+  document.getElementById('bergman-overlay').classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 function restartGame() {
@@ -2145,6 +2265,66 @@ ${state.will ? `
       Your browser does not support video playback.
     </video>
     <button class="video-close-btn" onclick="closeVideoModal()">Continue</button>
+  </div>
+</div>
+
+<!-- Bergman Modal -->
+<div class="bergman-overlay" id="bergman-overlay" onclick="if(event.target===this)closeBergmanModal()">
+  <div class="bergman-modal">
+    <h2>Dr. Walter & Frances Bergman</h2>
+    <p style="text-align:center;font-style:italic;color:#666;margin-bottom:1.2rem">Retired Public School Teachers from Detroit, Michigan</p>
+
+    <div class="bergman-photos">
+      <figure>
+        <img src="wbergman.jpg" alt="Dr. Walter Bergman">
+        <figcaption>Dr. Walter Bergman</figcaption>
+      </figure>
+      <figure>
+        <img src="Fbergman.jpg" alt="Frances Bergman">
+        <figcaption>Frances Bergman</figcaption>
+      </figure>
+      <figure>
+        <img src="bergmangroup.webp" alt="Freedom Riders group photo including Frances Bergman">
+        <figcaption>Freedom Riders group photo with Frances Bergman (center)</figcaption>
+      </figure>
+    </div>
+
+    <h3>Who Were They?</h3>
+    <p>Walter Bergman was 61 years old. Frances was 57. They were retired public school teachers from Detroit, Michigan &mdash; not college students, not professional activists. Walter had been a professor of educational administration at the University of Michigan and Wayne State University. They were members of CORE and deeply committed to racial justice. When they heard about the Freedom Ride, they volunteered immediately.</p>
+    <p>They were the oldest riders on the bus.</p>
+
+    <h3>The Beating</h3>
+    <p>When the Greyhound bus was attacked and firebombed in Anniston, Alabama on May 14, 1961, both Walter and Frances were aboard. After escaping the burning bus, the riders continued to Birmingham on the Trailways bus. There, a white mob was waiting at the bus station.</p>
+    <p>Walter was beaten savagely by Klansmen with pipes, fists, and bats. He was struck repeatedly in the head. The beating caused a cerebral hemorrhage &mdash; a stroke that would leave him <strong>permanently paralyzed and confined to a wheelchair for the remaining 38 years of his life</strong>. He was 61 years old, a retired teacher who had simply believed that the law of the land should be enforced.</p>
+    <p>Frances was also beaten but survived without permanent physical injury. She spent the rest of her life caring for Walter and continuing to fight for the cause they both believed in.</p>
+
+    <figure class="bergman-fbi">
+      <img src="waltwheelchair.jpg" alt="Walter Bergman in wheelchair in later years">
+      <figcaption>Walter Bergman, confined to a wheelchair after the beating in Birmingham. He would never walk again.</figcaption>
+    </figure>
+
+    <h3>The FBI Knew</h3>
+    <p>What made the Bergmans' story even more devastating was what came out years later: <strong>the FBI knew the attack was coming and did nothing to stop it.</strong></p>
+    <p>FBI Director J. Edgar Hoover had informants inside the Ku Klux Klan. The Bureau knew &mdash; days in advance &mdash; that Klansmen in Birmingham were planning to attack the Freedom Riders when they arrived. The FBI not only failed to warn the riders or intervene, but Birmingham's Public Safety Commissioner, Bull Connor, had arranged to give the Klan <strong>fifteen uninterrupted minutes</strong> to beat the riders before police would respond.</p>
+    <p>The FBI memo below, dated May 9, 1961 &mdash; five days before the attack &mdash; lists the Freedom Riders by name, including <strong>"Mr. and Mrs. W. G. Bergman, white, from Detroit, Michigan."</strong> The government knew exactly who was on that bus and exactly what was waiting for them.</p>
+
+    <div class="bergman-fbi">
+      <figure>
+        <img src="FBI1.jpg" alt="FBI memo dated May 9, 1961, listing the Freedom Riders by name">
+        <figcaption>FBI memo, May 9, 1961 &mdash; listing each Freedom Rider by name, race, and hometown, including the Bergmans. Page 2 of 3.</figcaption>
+      </figure>
+      <figure>
+        <img src="FBI2.jpg" alt="FBI memo page 2, continued list and intelligence details">
+        <figcaption>FBI memo, continued &mdash; detailing intelligence from Birmingham police and Klan-connected sources. Page 3 of 3.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Justice &mdash; Decades Later</h3>
+    <p>In 1983 &mdash; twenty-two years after the attack &mdash; Walter Bergman filed a lawsuit against the FBI. The case, <em>Bergman v. United States</em>, argued that the FBI's failure to act on its intelligence made the government complicit in his injuries.</p>
+    <p><strong>He won.</strong> A federal judge ruled that the FBI had violated the Bergmans' civil rights by failing to protect them despite having advance knowledge of the planned violence. Walter was awarded $35,000 in damages. It was a landmark ruling &mdash; one of the first times the federal government was held accountable for its role in enabling racial violence during the Civil Rights Movement.</p>
+    <p>Walter Bergman died in 1999 at the age of 100, having spent the last 38 years of his life in a wheelchair. Frances preceded him in death in 1979. Neither ever expressed regret about boarding that bus.</p>
+
+    <button class="bergman-close-btn" onclick="closeBergmanModal()">Close</button>
   </div>
 </div>
 
