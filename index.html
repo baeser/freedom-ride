@@ -89,8 +89,7 @@
 
   /* ===== MAP PANEL ===== */
   #map-panel {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 100;
     display: none;
     background: transparent;
@@ -107,7 +106,9 @@
     height: 450px;
     overflow: hidden;
     background: #aecbdf url('screen-shot-2021-03-21-at-5.57.50-pm.png') center/contain no-repeat;
+    transition: height 0.4s ease;
   }
+
 
   .map-svg {
     width: 100%;
@@ -1445,6 +1446,7 @@ function startGame() {
   initMap();
   renderScene('scene1');
 }
+
 
 function renderScene(sceneId) {
   state.currentScene = sceneId;
