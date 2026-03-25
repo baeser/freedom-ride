@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freedom Ride: 1961</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --bg-dark: #e8e0d0;
+    --text: #2c2416;
+    --text-light: #5a4a3a;
+    --accent: #8b2500;
+    --accent-light: #a83a10;
+    --blue: #1a3a5c;
+    --gold: #c49a2a;
+    --card-bg: #fffdf8;
+    --shadow: rgba(44, 36, 22, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.8;
+  }
+
+  /* ===== TITLE SCREEN ===== */
+  #title-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(180deg, #1a1410 0%, #2c2016 40%, #3d2b1a 100%);
+    color: #f5f0e8;
+  }
+
+  #title-screen h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+  }
+
+  #title-screen .subtitle {
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 2rem;
+  }
+
+  #title-screen .intro-text {
+    max-width: 650px;
+    font-size: 1rem;
+    line-height: 1.9;
+    color: #d4c8b8;
+    margin-bottom: 2.5rem;
+  }
+
+  #title-screen .intro-text em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .btn-start {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 3rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-start:hover { background: var(--accent-light); }
+
+  /* ===== MAP PANEL ===== */
+  #map-panel {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: none;
+    background: transparent;
+    border-bottom: 3px solid var(--accent);
+    overflow: hidden;
+  }
+
+  #map-panel.active { display: block; }
+
+  .map-wrapper {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 450px;
+    overflow: hidden;
+    background: #aecbdf url('screen-shot-2021-03-21-at-5.57.50-pm.png') center/contain no-repeat;
+  }
+
+  .map-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Route and state shapes removed — background image provides these */
+
+  /* City markers — invisible until active */
+  .city-dot-outer {
+    fill: none;
+    stroke: none;
+    transition: all 0.4s;
+  }
+
+  .city-dot-outer.visited {
+    fill: none;
+    stroke: none;
+  }
+
+  .city-dot-outer.current {
+    fill: none;
+    stroke: #b71c1c;
+    stroke-width: 5;
+    filter: drop-shadow(0 0 12px rgba(183,28,28,0.9));
+  }
+
+  .city-dot-inner {
+    fill: transparent;
+    transition: all 0.4s;
+  }
+
+  .city-dot-outer.visited .city-dot-inner,
+  .city-dot-outer.current .city-dot-inner {
+    fill: none;
+  }
+
+  /* City labels hidden — the map image has its own labels */
+  .city-label {
+    display: none;
+  }
+
+  /* Bus icon — removed, using ring highlights instead */
+
+  /* Danger markers */
+  .danger-icon {
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+
+  .danger-icon.visible { opacity: 1; }
+
+  /* Map legend */
+  .map-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    display: flex;
+    gap: 16px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(60,30,10,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(245,240,232,0.7);
+    padding: 4px 10px;
+    border-radius: 3px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-line {
+    width: 20px;
+    height: 3px;
+    background: #b71c1c;
+    border-radius: 2px;
+  }
+
+  .legend-line.dashed {
+    background: transparent;
+    border-top: 2px dashed rgba(60,30,10,0.4);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .legend-dot.gold { background: #b71c1c; }
+  .legend-dot.red { background: #c0392b; }
+
+  /* Map location callout */
+  .map-callout {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: right;
+  }
+
+  .callout-location {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #7f0000;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow: 0 1px 2px rgba(245,240,232,0.8);
+  }
+
+  .callout-date {
+    font-size: 0.7rem;
+    color: rgba(60,30,10,0.7);
+  }
+
+  /* Pulse animation for current city */
+  @keyframes pulse {
+    0% { r: 14; opacity: 0.6; }
+    50% { r: 28; opacity: 0; }
+    100% { r: 14; opacity: 0; }
+  }
+
+  .pulse-ring {
+    fill: none;
+    stroke: #b71c1c;
+    stroke-width: 3;
+    opacity: 0;
+  }
+
+  .pulse-ring.active {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  #game-container {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    display: none;
+  }
+
+  #game-container.active { display: block; }
+
+  .scene-location {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .scene-date {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .scene-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .scene-narrative { margin-bottom: 2rem; }
+
+  .scene-photo {
+    width: 100%;
+    margin: 1.5rem 0;
+    border: 3px solid var(--bg-dark);
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .scene-photo img {
+    width: 100%;
+    display: block;
+    filter: grayscale(20%) sepia(10%);
+  }
+
+  .scene-photo figcaption {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-dark);
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .scene-narrative p {
+    margin-bottom: 1.2rem;
+    font-size: 1.05rem;
+  }
+
+  .scene-narrative .historical-note {
+    background: var(--bg-dark);
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--text-light);
+  }
+
+  .scene-narrative .vocab-term {
+    border-bottom: 1px dashed var(--gold);
+    cursor: help;
+    position: relative;
+  }
+
+  .scene-narrative .vocab-term:hover::after {
+    content: attr(data-def);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: var(--blue);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-style: normal;
+    border-radius: 4px;
+    width: 280px;
+    z-index: 10;
+    line-height: 1.5;
+  }
+
+  .choice-prompt {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--blue);
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .choice-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: left;
+    padding: 1.1rem 1.5rem;
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .choice-btn .choice-label {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+
+  .consequence {
+    background: var(--card-bg);
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .consequence p { margin-bottom: 0.8rem; }
+  .consequence p:last-child { margin-bottom: 0; }
+
+  .continue-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: background 0.2s;
+  }
+
+  .continue-btn:hover { background: #24506e; }
+
+  .epilogue-section { margin-bottom: 2rem; }
+
+  .epilogue-section h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    color: var(--blue);
+  }
+
+  .epilogue-section ul { padding-left: 1.5rem; }
+
+  .epilogue-section li {
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+  }
+
+  .restart-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 1rem;
+    transition: background 0.2s;
+  }
+
+  .restart-btn:hover { background: var(--accent-light); }
+
+  /* ===== REFLECTION FORM ===== */
+  .reflection-section {
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 2px solid var(--bg-dark);
+  }
+
+  .reflection-section h2 {
+    font-size: 1.5rem;
+    color: var(--blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .reflection-intro {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    font-style: italic;
+  }
+
+  .reflection-field {
+    margin-bottom: 2rem;
+  }
+
+  .reflection-field label {
+    display: block;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .reflection-field textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 0.85rem 1rem;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  .reflection-field textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .reflection-field textarea::placeholder {
+    color: #b0a090;
+    font-style: italic;
+  }
+
+  .name-field {
+    margin-bottom: 2rem;
+  }
+
+  .name-field label {
+    display: block;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .name-field input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.7rem 1rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    transition: border-color 0.2s;
+  }
+
+  .name-field input:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .name-field input::placeholder {
+    color: #b0a090;
+  }
+
+  .reflection-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .save-pdf-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: background 0.2s;
+  }
+
+  .save-pdf-btn:hover { background: #24506e; }
+
+  .save-pdf-btn:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+
+  .pdf-note {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 0.75rem;
+  }
+
+  .fade-in { animation: fadeIn 0.6s ease forwards; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    #title-screen h1 { font-size: 2.2rem; }
+    #title-screen .subtitle { font-size: 1rem; }
+    .map-wrapper { height: 300px; }
+    .city-label { font-size: 14px; stroke-width: 3px; }
+    .map-callout { display: none; }
+    .map-legend { display: none; }
+    #game-container { padding: 1.5rem 1rem 3rem; }
+    .scene-title { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div id="title-screen">
+  <h1>Freedom Ride</h1>
+  <div class="subtitle">May 1961</div>
+  <div class="intro-text">
+    In December 1960, the Supreme Court ruled in <em>Boynton v. Virginia</em> that segregation in interstate travel facilities was unconstitutional. Across the South, nothing changed.
+    <br><br>
+    In this simulation, you are a college student in 1961. You will join the Congress of Racial Equality's Freedom Ride&mdash;a journey by bus through the Deep South to test whether the law of the land will be enforced.
+    <br><br>
+    The people in this story were real. The danger was real. Many of them were barely older than you.
+  </div>
+  <button class="btn-start" onclick="startGame()">Begin</button>
+</div>
+
+<!-- ===== AUDIO ===== -->
+<audio id="freedom-audio" src="We%20shall%20overcome.mp3" preload="auto"></audio>
+
+<!-- ===== MAP PANEL ===== -->
+<div id="map-panel">
+  <div class="map-wrapper">
+    <svg class="map-svg" viewBox="0 0 1494 1310" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+        </filter>
+      </defs>
+
+      <!-- Danger markers (fire at Anniston, attacks) -->
+      <g class="danger-icon" id="danger-anniston">
+        <text x="555" y="730" font-size="30" text-anchor="middle" style="filter:url(#glow)">&#x1F525;</text>
+      </g>
+      <g class="danger-icon" id="danger-birmingham">
+        <text x="498" y="730" font-size="24" text-anchor="middle" style="filter:url(#glow)">&#x26A0;</text>
+      </g>
+      <g class="danger-icon" id="danger-montgomery">
+        <text x="445" y="785" font-size="24" text-anchor="middle" style="filter:url(#glow)">&#x26A0;</text>
+      </g>
+
+      <!-- City markers layer — big rings over the numbered stops -->
+      <g id="cities-layer">
+        <!-- 1: Washington, D.C. -->
+        <g class="city-group" data-city="dc">
+          <circle class="pulse-ring" cx="1312" cy="185" r="30"/>
+          <circle class="city-dot-outer" cx="1312" cy="185" r="28" data-city="dc"/>
+        </g>
+
+        <!-- 5: Rock Hill, SC -->
+        <g class="city-group" data-city="rockhill">
+          <circle class="pulse-ring" cx="945" cy="612" r="30"/>
+          <circle class="city-dot-outer" cx="945" cy="612" r="28" data-city="rockhill"/>
+        </g>
+
+        <!-- 8: Atlanta, GA -->
+        <g class="city-group" data-city="atlanta">
+          <circle class="pulse-ring" cx="675" cy="758" r="30"/>
+          <circle class="city-dot-outer" cx="675" cy="758" r="28" data-city="atlanta"/>
+        </g>
+
+        <!-- Between 8 & 9: Anniston, AL -->
+        <g class="city-group" data-city="anniston">
+          <circle class="pulse-ring" cx="555" cy="765" r="30"/>
+          <circle class="city-dot-outer" cx="555" cy="765" r="28" data-city="anniston"/>
+        </g>
+
+        <!-- 9: Birmingham, AL -->
+        <g class="city-group" data-city="birmingham">
+          <circle class="pulse-ring" cx="498" cy="765" r="30"/>
+          <circle class="city-dot-outer" cx="498" cy="765" r="28" data-city="birmingham"/>
+        </g>
+
+        <!-- 11: Montgomery, AL -->
+        <g class="city-group" data-city="montgomery">
+          <circle class="pulse-ring" cx="445" cy="818" r="30"/>
+          <circle class="city-dot-outer" cx="445" cy="818" r="28" data-city="montgomery"/>
+        </g>
+
+        <!-- 12: Jackson, MS -->
+        <g class="city-group" data-city="jackson">
+          <circle class="pulse-ring" cx="130" cy="855" r="30"/>
+          <circle class="city-dot-outer" cx="130" cy="855" r="28" data-city="jackson"/>
+        </g>
+      </g>
+    </svg>
+
+    <!-- Map callout (current location label) -->
+    <div class="map-callout">
+      <div class="callout-location" id="callout-location"></div>
+      <div class="callout-date" id="callout-date"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-dot red"></div>
+        <span>Current location</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME CONTENT ===== -->
+<div id="game-container"></div>
+
+<script>
+// ============================================================
+// GAME STATE
+// ============================================================
+const state = {
+  currentScene: null,
+  busChoice: null,
+  decisions: [],
+  visitedStops: []
+};
+
+// ============================================================
+// MAP CONFIGURATION
+// ============================================================
+const stopOrder = ['dc', 'rockhill', 'atlanta', 'anniston', 'birmingham', 'montgomery', 'jackson'];
+
+// City positions on the SVG (must match the SVG coordinates)
+const cityPositions = {
+  dc:         { x: 1312, y: 185, label: "Washington, D.C.", state: "VA" },
+  rockhill:   { x: 945, y: 612, label: "Rock Hill, SC", state: "SC" },
+  atlanta:    { x: 675, y: 758, label: "Atlanta, GA", state: "GA" },
+  anniston:   { x: 555, y: 765, label: "Anniston, AL", state: "AL" },
+  birmingham: { x: 498, y: 765, label: "Birmingham, AL", state: "AL" },
+  montgomery: { x: 445, y: 818, label: "Montgomery, AL", state: "AL" },
+  jackson:    { x: 130, y: 855, label: "Jackson, MS", state: "MS" }
+};
+
+// Danger markers keyed to which stop triggers them
+const dangerTriggers = {
+  anniston: 'danger-anniston',
+  birmingham: 'danger-birmingham',
+  montgomery: 'danger-montgomery'
+};
+
+function initMap() {
+  // Map is now image-based; no route path animation needed
+}
+
+function updateRouteMap(currentStop, locationText, dateText) {
+  if (!currentStop) return;
+  const idx = stopOrder.indexOf(currentStop);
+  if (idx === -1) return;
+
+  if (!state.visitedStops.includes(currentStop)) {
+    state.visitedStops.push(currentStop);
+  }
+
+  // Update city dots
+  document.querySelectorAll('.city-dot-outer').forEach(dot => {
+    const city = dot.getAttribute('data-city');
+    const cityIdx = stopOrder.indexOf(city);
+    dot.classList.remove('visited', 'current');
+    if (cityIdx < idx) dot.classList.add('visited');
+    if (cityIdx === idx) dot.classList.add('current');
+  });
+
+  // Update city labels
+  document.querySelectorAll('.city-label').forEach(label => {
+    const city = label.getAttribute('data-city');
+    const cityIdx = stopOrder.indexOf(city);
+    label.classList.remove('visited', 'current');
+    if (cityIdx < idx) label.classList.add('visited');
+    if (cityIdx === idx) label.classList.add('current');
+  });
+
+  // Pulse ring on current city
+  document.querySelectorAll('.pulse-ring').forEach(ring => ring.classList.remove('active'));
+  const currentGroup = document.querySelector(`.city-group[data-city="${currentStop}"]`);
+  if (currentGroup) {
+    currentGroup.querySelector('.pulse-ring').classList.add('active');
+  }
+
+  // Highlight the current state shape
+  document.querySelectorAll('.state-shape').forEach(s => s.classList.remove('active-state'));
+  document.querySelectorAll('.state-label').forEach(s => s.classList.remove('active-label'));
+  const cityInfo = cityPositions[currentStop];
+  if (cityInfo) {
+    const stateShape = document.querySelector(`.state-shape[data-state="${cityInfo.state}"]`);
+    if (stateShape) stateShape.classList.add('active-state');
+    // Also highlight MS when at DC (for the label)
+    const stateLabels = document.querySelectorAll('.state-label');
+    stateLabels.forEach(sl => {
+      if (sl.textContent.trim() === cityInfo.state || sl.textContent.trim() === 'TENNESSEE' && false) {
+        sl.classList.add('active-label');
+      }
+    });
+  }
+
+  // Show danger markers for visited dangerous stops
+  Object.entries(dangerTriggers).forEach(([stop, id]) => {
+    if (state.visitedStops.includes(stop)) {
+      document.getElementById(id).classList.add('visible');
+    }
+  });
+
+  // Update callout
+  if (locationText) {
+    document.getElementById('callout-location').textContent = locationText;
+  }
+  if (dateText) {
+    document.getElementById('callout-date').textContent = dateText;
+  }
+}
+
+// ============================================================
+// SCENE DATA
+// ============================================================
+const scenes = {
+
+// ------ SCENE 1: THE CALL ------
+scene1: {
+  location: "Washington, D.C.",
+  date: "Late April, 1961",
+  stop: "dc",
+  title: "The Call",
+  narrative: `
+    <p>You're a student at Howard University. Between classes, your friend Marcus catches you in the hallway and presses a mimeographed flyer into your hand.</p>
+
+    <p><strong>"CORE needs riders,"</strong> he says. <strong>"Read it."</strong></p>
+
+    <p>The flyer is from the <span class="vocab-term" data-def="Congress of Racial Equality, a civil rights organization founded in 1942 that pioneered nonviolent direct action in the United States.">Congress of Racial Equality</span>. It announces a plan to send an interracial group on public buses from Washington, D.C., to New Orleans, Louisiana&mdash;deliberately using "white only" waiting rooms, lunch counters, and restrooms at every stop along the way.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> In December 1960, the U.S. Supreme Court ruled in <em>Boynton v. Virginia</em> that segregation in interstate bus terminals was unconstitutional, building on the earlier <em>Morgan v. Virginia</em> (1946) ruling against segregated seating on interstate buses. But across the South, "White" and "Colored" signs still hung over every waiting room, restroom, and lunch counter. No one was enforcing the law. CORE director James Farmer decided to force the issue.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="james farmer 1962 june 20 1.jpg" alt="CORE letter to President Kennedy about the Freedom Rides">
+      <figcaption>A letter from CORE to President John F. Kennedy outlining plans for direct action against segregation in interstate travel facilities.</figcaption>
+    </figure>
+
+    <p>You've heard about the 1947 <span class="vocab-term" data-def="An earlier bus ride through the upper South organized by CORE and the Fellowship of Reconciliation in 1947 to test the Morgan v. Virginia ruling. Several riders were arrested and sentenced to chain gangs.">Journey of Reconciliation</span>&mdash;CORE tried something similar fifteen years ago, and riders ended up on chain gangs in North Carolina. This time, CORE is going deeper South. Into Alabama. Into Mississippi.</p>
+
+    <p>Marcus looks at you seriously. <strong>"They're asking riders to write wills before they leave. That's how dangerous this is. But somebody has to go."</strong></p>
+  `,
+  prompt: "What do you say?",
+  choices: [
+    {
+      label: "A",
+      text: "\"I'm in. When do we leave?\"",
+      consequence: `<p>Marcus grips your hand. "Training starts next week at the Fellowship House. Be there." He pauses. "And write that letter to your family. Just in case."</p>`,
+      next: "scene2"
+    },
+    {
+      label: "B",
+      text: "\"I need to know exactly what we're walking into first.\"",
+      consequence: `<p>Marcus nods. "Smart. Come to the meeting tonight." That evening, a CORE organizer lays it out plainly: riders will face arrest, beatings, possibly worse. Each rider must sign a pledge of nonviolence. Each rider is asked to provide next-of-kin contact information. Several riders are writing wills.</p>
+      <p>"We are not going on a trip," the organizer says. "We are going on a mission. The federal government has said these facilities must be desegregated. We are going to find out whether that means anything."</p>
+      <p>You sign up that night.</p>`,
+      next: "scene2"
+    }
+  ]
+},
+
+// ------ SCENE 2: NONVIOLENCE TRAINING ------
+scene2: {
+  location: "Washington, D.C.",
+  date: "Early May, 1961",
+  stop: "dc",
+  title: "Nonviolence Training",
+  narrative: `
+    <p>For three days, you train at the Fellowship House in Washington. The sessions are led by CORE veterans who have studied Gandhian nonviolence. This is not about being passive. It is about discipline under fire.</p>
+
+    <p>The room is set up like a bus station lunch counter. You sit on a stool. Other trainees play the roles of hostile white segregationists. They crowd behind you. They scream slurs inches from your face. They pour water on your head. They shove you off the stool.</p>
+
+    <p>James Farmer, CORE's director, explains the rules: <strong>"You do not strike back. You do not curse. You do not run. You look your attacker in the eye, or you protect your head and body&mdash;but you do not retaliate. If you cannot commit to this absolutely, you cannot ride."</strong></p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The original group of 13 Freedom Riders included both Black and white members, ranging in age from 18 to 61. They were carefully selected and extensively trained. CORE also notified the FBI, the Justice Department, the White House, Greyhound, and Trailways of their plans. They received no assurances of protection from anyone.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="trainingphoto.jpg" alt="Nonviolence training exercise for civil rights activists">
+      <figcaption>Nonviolent resistance training: activists practice enduring harassment without retaliating. Trainees had to prove they could absorb abuse without fighting back before they were approved to ride.</figcaption>
+    </figure>
+
+    <p>During a training exercise, a volunteer playing a hostile segregationist gets in your face. He shoves your shoulder hard and shouts a racial slur. The room goes quiet. Everyone is watching to see what you do.</p>
+  `,
+  prompt: "How do you respond?",
+  choices: [
+    {
+      label: "A",
+      text: "You stand your ground silently and look him in the eye.",
+      consequence: `<p>The room holds its breath. After a long moment, the trainer steps back and nods. "Good," he says. "That took more strength than hitting me back. Remember that feeling. You'll need it."</p>`,
+      next: "scene3"
+    },
+    {
+      label: "B",
+      text: "You turn away slowly and sit back down with your hands visible on the counter.",
+      consequence: `<p>The trainer nods. "De-escalation with dignity. You didn't flinch, but you didn't engage. That can save your life down there." James Farmer adds: "There will be moments where the hardest thing in the world is to do nothing. That's the discipline."</p>`,
+      next: "scene3"
+    },
+    {
+      label: "C",
+      text: "Instinctively, you shove back.",
+      consequence: `<p>The room goes still. The trainer raises his hand. "Stop." He's not angry. He speaks quietly. "That reaction is natural. No one will blame you for it in this room. But on that bus, in that station, if you do that, they will kill you. And they will use your reaction to justify it to every newspaper in America."</p>
+      <p>James Farmer puts a hand on your shoulder. "This is why we train. Not because nonviolence is easy. Because it is the hardest thing you will ever do. Try again."</p>
+      <p>You try again. This time, you hold steady. The trainer nods. "Now you're ready."</p>`,
+      next: "scene3"
+    }
+  ]
+},
+
+// ------ SCENE 3: THE LAST SUPPER ------
+scene3: {
+  location: "Washington, D.C.",
+  date: "May 3, 1961",
+  stop: "dc",
+  title: "The Last Supper",
+  narrative: `
+    <p>The night before departure, the thirteen riders gather for dinner at a Chinese restaurant in Washington. The mood is somber. You look around the table: students, ministers, a retired professor, a folk singer. Black and white, young and old. Tomorrow you ride south together.</p>
+
+    <p>James Farmer reviews the plan. The group will split between two buses&mdash;a Greyhound and a Trailways&mdash;to test both carriers. At each stop, Black riders will use "white" facilities, and white riders will use "colored" facilities. Simeon Booker, a reporter from <em>Jet</em> magazine, will ride along to document everything.</p>
+
+    <p>Farmer is honest: <strong>"CORE contacted the FBI about our route. They did not offer protection. We contacted the bus companies. They did not respond. The Justice Department knows we're going. They have said nothing."</strong></p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The FBI did more than simply decline to help. FBI Director J. Edgar Hoover passed the Freedom Riders' travel plans to local segregationist officials in Alabama. The bureau knew violence was being organized and did nothing to stop it.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="ridersboardingthebus.webp" alt="Freedom Riders boarding the Greyhound bus in Washington, D.C.">
+      <figcaption>Freedom Riders board a Greyhound Scenicruiser at the bus terminal. The riders split between Greyhound and Trailways buses to test both carriers.</figcaption>
+    </figure>
+
+    <p>An older rider, a man who was on the 1947 Journey of Reconciliation, speaks up. <strong>"Some of us went to prison last time. This time will be worse. We're going deeper. If anyone wants to step back, no one will think less of you."</strong></p>
+
+    <p>No one moves.</p>
+
+    <p>Farmer asks each rider to choose their bus for the morning.</p>
+  `,
+  prompt: "Which bus will you ride?",
+  choices: [
+    {
+      label: "A",
+      text: "The Greyhound bus.",
+      consequence: `<p>You'll board the Greyhound at the D.C. terminal tomorrow morning. You write a letter to your parents tonight. You don't tell them where you're going. You tell them you love them. You leave it on your desk, just in case.</p>`,
+      next: "scene4",
+      effect: () => { state.busChoice = 'greyhound'; }
+    },
+    {
+      label: "B",
+      text: "The Trailways bus.",
+      consequence: `<p>You'll board the Trailways at the D.C. terminal tomorrow morning. That night, you can't sleep. You stare at the ceiling and think about what's waiting in Alabama, in Mississippi. You think about the signs&mdash;"White Only," "Colored Only"&mdash;and the fact that the highest court in the land has said those signs are illegal, and no one has taken them down. You get up and pack your bag.</p>`,
+      next: "scene4",
+      effect: () => { state.busChoice = 'trailways'; }
+    }
+  ]
+},
+
+// ------ SCENE 4: THROUGH VIRGINIA AND THE CAROLINAS ------
+scene4: {
+  location: "Virginia & the Carolinas",
+  date: "May 4 – 9, 1961",
+  stop: "rockhill",
+  title: "Heading South",
+  narrative: `
+    <p>The first days are tense but uneventful. Through Virginia, you test waiting rooms without serious incident. A few glares. A waitress who refuses to serve you but doesn't call the police. A restroom attendant who steps aside when you walk past the "Colored" sign.</p>
+
+    <p>You begin to wonder if maybe things have changed more than you thought.</p>
+
+    <p>Then you reach Rock Hill, South Carolina.</p>
+
+    <p>When you step off the bus and walk toward the white waiting room at the Rock Hill station, two white men block the doorway. <strong>"You ain't coming in here,"</strong> one of them says.</p>
+
+    <p>You keep walking. The first punch catches you in the face. You go down. They kick you. John Lewis, a seminary student from Nashville who is barely twenty years old, steps forward to enter the waiting room. They beat him too. He doesn't raise his hands. He doesn't fight back. He just keeps trying to stand up.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> John Lewis and Albert Bigelow were both beaten at the Rock Hill, South Carolina bus station. Lewis, who would go on to become a U.S. Congressman representing Georgia for 33 years, was 21 years old at the time. He had already been trained in nonviolent resistance by James Lawson in Nashville and had participated in lunch counter sit-ins.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="Johnlewis.webp" alt="John Lewis and James Zwerg after being beaten">
+      <figcaption>John Lewis (left) with blood on his suit jacket, standing beside fellow Freedom Rider Jim Zwerg (right), after being attacked. Lewis was 21 years old.</figcaption>
+    </figure>
+
+    <p>Local police arrive eventually. They do not arrest the attackers. They ask if <em>you</em> want to press charges. Lewis declines&mdash;pressing charges would mean staying in Rock Hill for weeks waiting for a trial that would go nowhere.</p>
+
+    <p>A Black family from the neighborhood brings towels and water. A man offers to drive you ahead to the next stop so you can avoid getting back on the bus.</p>
+  `,
+  prompt: "What do you do?",
+  choices: [
+    {
+      label: "A",
+      text: "\"Thank you, sir. But I'm getting back on the bus. That's the whole point.\"",
+      consequence: `<p>The man looks at you for a long moment, then nods. "God bless you," he says quietly. You get back on the bus with blood on your shirt. No one speaks for the next fifty miles. But no one gets off, either.</p>`,
+      next: "scene5"
+    },
+    {
+      label: "B",
+      text: "\"I want to press charges. Those men committed assault and the police saw it.\"",
+      consequence: `<p>John Lewis shakes his head gently, wiping blood from his lip. "I understand. But if we press charges, we're stuck in Rock Hill for weeks waiting for a trial. A trial in front of an all-white jury in South Carolina. We won't win, and the ride stops here. That's exactly what they want."</p>
+      <p>He's right, and you know it. The legal system in the South is not designed to protect you. The movement's power isn't in courtrooms&mdash;it's in the ride itself, in the cameras, in the nation watching. You get back on the bus. The man from the neighborhood presses a paper bag of sandwiches into your hands. "For the road," his wife says.</p>`,
+      next: "scene5"
+    }
+  ]
+},
+
+// ------ SCENE 5: GEORGIA — THE CALM ------
+scene5: {
+  location: "Atlanta, Georgia",
+  date: "May 13, 1961",
+  stop: "atlanta",
+  title: "The Warning",
+  narrative: `
+    <p>Atlanta is an uneasy pause. The city's lunch counters were recently desegregated after student sit-ins, and the bus station facilities are integrated without incident. For a few hours, you can almost breathe.</p>
+
+    <p>That evening, several riders are invited to dinner with Dr. Martin Luther King Jr. at a restaurant near his church. King is warm but grave. He has been on the phone all day.</p>
+
+    <p><strong>"I want to be honest with you,"</strong> King says, setting down his fork. <strong>"I have been in contact with people in Alabama. You will not make it through Alabama safely. The Ku Klux Klan is organizing. They know your route. They know your schedule."</strong></p>
+
+    <p>The table goes quiet. Someone asks how the Klan knows.</p>
+
+    <p><strong>"Because the police told them,"</strong> King says simply.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> Birmingham Public Safety Commissioner Eugene "Bull" Connor had made a deal with the local KKK: when the Freedom Riders arrived in Birmingham, police would stay away for fifteen minutes, giving the Klan time to attack the riders. The FBI knew about this arrangement&mdash;one of their informants within the KKK, Gary Thomas Rowe, had reported it&mdash;and the FBI did nothing to stop it. They did not warn the riders.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="atlanta.jpg" alt="Colored Waiting Room sign at a Southern bus station">
+      <figcaption>"Colored Waiting Room" — signs like these hung in every bus station across the South. The Supreme Court had ruled them unconstitutional. No one had taken them down.</figcaption>
+    </figure>
+
+    <p>One of the younger riders asks King if he will join them on the bus. King pauses for a long time. <strong>"I think I should not go,"</strong> he says. Some riders are privately frustrated. Others understand&mdash;King is out on bail from a prior arrest and under constant death threats.</p>
+
+    <p>Before you leave, a CORE organizer gathers the group. <strong>"Tomorrow we cross into Alabama. I need every one of you to look inside yourself tonight and decide if you can do this. No one will judge you if you stop here."</strong></p>
+  `,
+  prompt: "Alabama is next. What is on your mind?",
+  choices: [
+    {
+      label: "A",
+      text: "\"I didn't come this far to stop now. I'll be on the bus in the morning.\"",
+      consequence: `<p>"Then get some sleep," the organizer says. "You'll need it." You don't sleep. You lie in the dark and listen to the others not sleeping either. In the morning, everyone is at the bus station. Every single one.</p>`,
+      next: "scene6"
+    },
+    {
+      label: "B",
+      text: "\"I'm scared. I won't pretend I'm not. But I'll ride.\"",
+      consequence: `<p>The rider next to you&mdash;a white seminary student from Connecticut&mdash;puts his hand on your arm. "I'm scared too," he says. "I think anyone who isn't scared hasn't been paying attention." You sit together in silence for a while. Fear and courage, you are learning, are not opposites. They ride the same bus.</p>`,
+      next: "scene6"
+    },
+    {
+      label: "C",
+      text: "\"What exactly has Dr. King heard? I want to know everything.\"",
+      consequence: `<p>The organizer sighs and tells you. Bull Connor, Birmingham's Commissioner of Public Safety, has guaranteed the Klan fifteen uninterrupted minutes with the riders when they arrive. "Fifteen minutes," the organizer repeats. "Do you understand what a mob can do in fifteen minutes?" He lets that settle. "The FBI knows. They have an informant in the Klan who reported the whole plan. The Justice Department knows. No one is going to stop it."</p>
+      <p>You feel sick. But you also feel something else&mdash;a cold clarity. If the federal government won't protect citizens exercising their constitutional rights, then someone has to make that failure so public, so undeniable, that they have no choice. That is what this ride is for.</p>
+      <p>You will be on the bus in the morning.</p>`,
+      next: "scene6"
+    }
+  ]
+},
+
+// ------ SCENE 6: ANNISTON, ALABAMA ------
+scene6: {
+  location: "Anniston, Alabama",
+  date: "May 14, 1961",
+  stop: "anniston",
+  title: null,
+  get narrative() {
+    return state.busChoice === 'greyhound' ? this._greyhoundNarrative : this._trailwaysNarrative;
+  },
+  get prompt() {
+    return state.busChoice === 'greyhound' ? this._greyhoundPrompt : this._trailwaysPrompt;
+  },
+  get choices() {
+    return state.busChoice === 'greyhound' ? this._greyhoundChoices : this._trailwaysChoices;
+  },
+
+  _greyhoundNarrative: `
+    <p>It is Mother's Day, May 14, 1961. Your Greyhound bus crosses into Alabama.</p>
+
+    <p>When the bus pulls into the Anniston Greyhound station, you see them. Roughly two hundred white men are waiting. Some carry iron pipes. Some carry baseball bats. Some carry chains. They surround the bus.</p>
+
+    <p>The mob smashes the bus windows. Someone slashes the tires. The driver, hands shaking, manages to pull away from the station. But the mob follows in a caravan of cars and pickup trucks.</p>
+
+    <p>Six miles outside Anniston, the slashed tires finally give out. The bus rolls to a stop on the highway shoulder. The mob swarms the bus. Someone smashes the rear window and throws a firebomb inside.</p>
+
+    <p><strong>The bus fills with black smoke and flames.</strong></p>
+
+    <p>You can't breathe. Your eyes are burning. Riders are screaming. You crawl toward a window. The heat is unbearable. Outside, the mob is waiting with bats and pipes, beating riders as they stumble out of the burning bus.</p>
+
+    <p>Then the fuel tank explodes. The blast scatters the mob just enough for the riders to escape the worst of it. You collapse on the grass beside the highway, coughing, gasping. The bus behind you is engulfed in flame.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The photograph of the Greyhound bus burning outside Anniston, Alabama became one of the most iconic images of the Civil Rights Movement. It was published on front pages around the world. Twelve riders were hospitalized for smoke inhalation and injuries from the mob beating. No one in the mob was arrested that day. The first responders to arrive were not police&mdash;they were members of the local Black community who had heard about the attack.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="Anniston-bus.jpg" alt="The Greyhound bus burning outside Anniston, Alabama, May 14, 1961">
+      <figcaption>The Greyhound bus burns outside Anniston, Alabama, May 14, 1961. An injured Freedom Rider sits in the grass in the foreground. This photograph was published on front pages around the world.</figcaption>
+    </figure>
+
+    <p>You are taken to Anniston Memorial Hospital, but the hospital is hostile. White staff refuse to treat the riders. The hospital demands you leave. Outside, the mob is regrouping.</p>
+
+    <p>Then, just past midnight, a convoy of armed cars arrives from Birmingham. It is Reverend Fred Shuttlesworth&mdash;the fearless Birmingham civil rights leader&mdash;who has organized a rescue. Armed Black men from Birmingham have driven sixty miles to get you out.</p>
+  `,
+  _greyhoundPrompt: "Shuttlesworth's people are here. What do you do?",
+  _greyhoundChoices: [
+    {
+      label: "A",
+      text: "You get in the convoy immediately. Birmingham. Whatever comes next.",
+      consequence: `<p>Shuttlesworth himself helps you into a car. "We got you," he says. The convoy drives through the Alabama night, headlights cutting through the dark. You are burned, bruised, and shaking. But you are alive. In Birmingham, the Black community takes the riders in, treating wounds and offering beds. But Birmingham is not safe, either. You know what is waiting there.</p>`,
+      next: "scene7"
+    },
+    {
+      label: "B",
+      text: "\"I want to stay. They can't just throw us out of a hospital.\"",
+      consequence: `<p>An older rider puts a hand on your arm. "You're right. They can't. But they are. And right now, survival is the mission." He gestures toward the convoy. "There will be time to fight this fight. But not tonight. Tonight we live so we can ride again."</p>
+      <p>You let them help you into a car. The convoy heads for Birmingham through back roads, headlights off for stretches to avoid being followed. You watch the dark trees slide past the window and think: <em>this is America. This is 1961. And the bus is still burning behind us.</em></p>`,
+      next: "scene7"
+    }
+  ],
+
+  _trailwaysNarrative: `
+    <p>It is Mother's Day, May 14, 1961. Your Trailways bus pulls into Anniston, Alabama.</p>
+
+    <p>At the Anniston station, eight white men board the bus. They are not passengers. They walk down the aisle with cold purpose, demanding that Black riders move to the back of the bus.</p>
+
+    <p>When the riders refuse, the beating begins.</p>
+
+    <p>They drag riders from their seats. They punch and kick and stomp. One rider is hit so hard he is unconscious before he hits the floor. You are knocked into the aisle. A boot comes down on your ribs. You curl up and cover your head, the way they taught you in training. You do not fight back.</p>
+
+    <p>The white men force the Black riders to the back of the bus, piling bleeding, semi-conscious people on top of each other. The bus driver, who has watched this without intervening, closes the doors and drives on to Birmingham.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> While the Greyhound bus was being firebombed outside Anniston, the Trailways bus experienced a different but equally brutal attack. The white men who boarded were Klansmen. They beat the riders for refusing to move to the back of the bus. The driver was complicit. The injured riders were forced to continue to Birmingham with no medical attention. Meanwhile, news of the Greyhound bus burning was being broadcast on radio stations across Alabama.
+    </div>
+
+    <p>The bus rolls on toward Birmingham. You are bleeding from a cut above your eye. The rider next to you is barely conscious. Through the pain, you hear the bus radio crackle with news: the other bus, the Greyhound, has been firebombed outside Anniston. It is destroyed.</p>
+
+    <p>You are heading to Birmingham, where Bull Connor has promised the Klan fifteen uninterrupted minutes.</p>
+  `,
+  _trailwaysPrompt: "The bus is pulling into Birmingham. You can see the station ahead. What do you do?",
+  _trailwaysChoices: [
+    {
+      label: "A",
+      text: "You stand up, despite the pain, and walk toward the front of the bus to exit through the white entrance.",
+      consequence: `<p>The Birmingham Trailways station is quiet. Too quiet. There are no police anywhere. Then the mob appears&mdash;Klansmen with pipes, bats, and chains. They attack. You are beaten again. A white rider, Jim Peck, is hit so many times he will need fifty stitches. The fifteen minutes Bull Connor promised the Klan stretch on. When police finally arrive, they arrest no one in the mob. The Birmingham hospital initially refuses to treat Jim Peck.</p>`,
+      next: "scene7"
+    },
+    {
+      label: "B",
+      text: "You look for another exit&mdash;a back door, a side entrance, anything.",
+      consequence: `<p>There is no other way out. The bus has one door, and it opens onto the Birmingham Trailways station platform. There are no police. The station is empty except for the mob waiting around the corner. When the riders step off, they attack. Klansmen with pipes, bats, and chains beat the riders in the empty terminal. Bull Connor has kept his promise: fifteen minutes with no police interference. Jim Peck, a white rider, is beaten so badly he needs fifty stitches. When police finally arrive, they arrest no one in the mob.</p>
+      <p>There was never another exit. That was the point. The Freedom Riders walked through the only door there was.</p>`,
+      next: "scene7"
+    }
+  ]
+},
+
+// ------ SCENE 7: BIRMINGHAM AND THE DECISION TO CONTINUE ------
+scene7: {
+  location: "Birmingham, Alabama",
+  date: "May 15 – 17, 1961",
+  stop: "birmingham",
+  title: "The Decision",
+  narrative: `
+    <p>The aftermath is devastating. Riders are hospitalized across Birmingham. The photograph of the burning Greyhound bus is on the front page of every newspaper in the world. For the first time, many Americans are seeing what "states' rights" actually looks like.</p>
+
+    <p>Bull Connor, Birmingham's Public Safety Commissioner, tells reporters his officers were absent because it was Mother's Day and they were <strong>"visiting their mothers."</strong></p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> Connor's excuse was widely ridiculed, even by segregationist newspapers. The FBI knew the attack was planned&mdash;their informant Gary Thomas Rowe had provided detailed advance warning&mdash;and did nothing. FBI Director J. Edgar Hoover chose to protect his informant's cover rather than warn the riders or prevent the violence.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="trailwaysstation.jpg" alt="The Birmingham Trailways bus station">
+      <figcaption>The Birmingham Trailways station. When the Freedom Riders arrived, the station was deserted &mdash; no police in sight. Bull Connor had kept his promise to the Klan.</figcaption>
+    </figure>
+
+    <p>CORE's original riders are broken and bruised. James Farmer is agonizing. The bus companies refuse to carry the riders further. No driver will take the bus into Montgomery or Mississippi.</p>
+
+    <p>Then the phone rings. It is <strong>Diane Nash</strong>, a 22-year-old student leader from Nashville, Tennessee. She tells Farmer that the Nashville Student Movement is sending ten reinforcements to Birmingham to continue the Freedom Ride.</p>
+
+    <p>Farmer tries to warn her. "You'll be killed," he says.</p>
+
+    <p>Nash's response becomes one of the most quoted lines of the movement: <strong>"If we let them stop us with violence, the movement is dead. We can't let them stop us."</strong></p>
+
+    <p>The Nashville students arrive within hours. John Lewis, despite being beaten at Rock Hill, is among them. They are young. They are terrified. They are determined.</p>
+  `,
+  prompt: "The original ride is in jeopardy. What is your position?",
+  choices: [
+    {
+      label: "A",
+      text: "\"Diane Nash is right. If we stop, they win. We ride.\"",
+      consequence: `<p>The Nashville students look at you&mdash;battered, bandaged, still standing. One of them nods. "If you can keep going after what happened to you, how can we do any less?" The combined group begins planning the next leg. You will ride to Montgomery.</p>`,
+      next: "scene8"
+    },
+    {
+      label: "B",
+      text: "\"More people are going to get hurt. Maybe killed. Is this worth dying for?\"",
+      consequence: `<p>The room is silent. Then a Nashville student speaks&mdash;a young woman barely twenty. "If we stop now, the message to every person who hates us is that violence works. That all they have to do is beat us badly enough and we'll go home. Every movement after this, every march, every sit-in, will face the same threat. We have to prove that it doesn't work."</p>
+      <p>You think about the burning bus. You think about the boots on the Trailways. You think about the signs that are still hanging in every bus station from here to New Orleans.</p>
+      <p>"Okay," you say. "We ride."</p>`,
+      next: "scene8"
+    },
+    {
+      label: "C",
+      text: "\"The Nashville students are fresh. Maybe they should take the lead. We've done our part.\"",
+      consequence: `<p>An older rider agrees. "The original thirteen are hurt. Some can barely walk. Let the Nashville group carry this forward." This is, in fact, what happens: the Nashville Student Movement takes over the operational leadership of the rides. But you don't step off. You can still sit on a bus. You can still walk into a waiting room. You will ride with the Nashville students as reinforcement. The movement is bigger than CORE. It is bigger than any one group. That's how you know it will survive.</p>`,
+      next: "scene8"
+    }
+  ]
+},
+
+// ------ SCENE 8: MONTGOMERY ------
+scene8: {
+  location: "Montgomery, Alabama",
+  date: "May 20, 1961",
+  stop: "montgomery",
+  title: "Montgomery",
+  narrative: `
+    <p>After days of standoff in Birmingham&mdash;bus drivers refusing to drive, Bull Connor personally putting riders on a train back to Nashville (they immediately return by car)&mdash;the riders finally secure a bus to Montgomery.</p>
+
+    <p>The bus leaves Birmingham with a full police escort: highway patrol cars, a plane overhead. Attorney General Robert Kennedy has personally intervened, pressuring Alabama Governor John Patterson to guarantee the riders' safety.</p>
+
+    <p>At the Montgomery city line, the escort vanishes. Every patrol car pulls off the road. The plane disappears. The bus rolls into the Montgomery Greyhound station alone.</p>
+
+    <p>The station looks empty. Then you see them.</p>
+
+    <p><strong>More than three hundred people.</strong> Men and women. Carrying baseball bats, pipes, chains, and crates of Coca-Cola bottles to throw. They charge.</p>
+
+    <p>What follows is twenty minutes of unrestrained mob violence. John Lewis is knocked unconscious with a wooden crate. Jim Zwerg, a white exchange student from Wisconsin, is pulled from the group and beaten so savagely he will spend days in the hospital. <strong>John Seigenthaler</strong>, a Justice Department aide sent by Robert Kennedy himself, is knocked unconscious when he tries to rescue a rider being dragged into a car.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Montgomery attack was broadcast on national television. Images of bloodied riders shocked the nation and the world. Attorney General Robert Kennedy, furious, sent 400 federal marshals to Montgomery. That night, Dr. King held a mass meeting at the First Baptist Church. A white mob of over a thousand people besieged the church all night. Only the federal marshals and eventually the Alabama National Guard, called up reluctantly by Governor Patterson, prevented the mob from entering.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="zwerg.jpg" alt="Jim Zwerg in hospital after being beaten in Montgomery">
+      <figcaption>Jim Zwerg recovers in a Montgomery hospital after being savagely beaten by the mob. The newspaper in his hands reports on federal officers arriving in the city. Zwerg, a white exchange student from Wisconsin, was specifically targeted because he was riding alongside Black Freedom Riders.</figcaption>
+    </figure>
+
+    <p>That night, inside First Baptist Church, surrounded by federal marshals holding back a mob, the riders debate the next step. Everyone knows what Mississippi means. Governor Ross Barnett has made it clear: any Freedom Rider entering Mississippi will be arrested immediately.</p>
+
+    <p>Word comes through back channels: Robert Kennedy's office has brokered an unofficial deal. Mississippi authorities will not allow mob violence. Instead, they will <strong>immediately arrest every rider</strong> for "breach of peace" the moment they attempt to use white facilities.</p>
+
+    <p>Jail, not beatings. That is the bargain.</p>
+  `,
+  prompt: "The next stop is Jackson, Mississippi. You know you will be arrested. Do you ride?",
+  choices: [
+    {
+      label: "A",
+      text: "\"Jail is better than what we just survived. Let's ride to Jackson.\"",
+      consequence: `<p>"Then we fill their jails," says Diane Nash. "We fill them until they can't hold any more. Until the whole country has to look at what Mississippi is doing to people who are exercising their constitutional rights." Plans are made for the morning. You try to sleep on a church pew while federal marshals patrol outside. Through the stained glass, you can see the glow of the mob's torches.</p>`,
+      next: "scene9"
+    },
+    {
+      label: "B",
+      text: "\"They want to lock us up and make us disappear. That's the plan. We'll be forgotten in a Mississippi jail.\"",
+      consequence: `<p>A Nashville student shakes her head. "No. That's what they think will happen. But Jet magazine is with us. The Associated Press is with us. The world is watching now because of that photograph of the burning bus. They cannot make us disappear." She looks around the room. "And even if they could&mdash;if not us, who? If not now, when?"</p>
+      <p>You look at the riders around you. Bruised. Bandaged. Exhausted. Not one of them is leaving.</p>
+      <p>"Alright," you say. "Jackson."</p>`,
+      next: "scene9"
+    }
+  ]
+},
+
+// ------ SCENE 9: THE RIDE TO JACKSON ------
+scene9: {
+  location: "En Route to Jackson",
+  date: "May 24, 1961",
+  stop: "montgomery",
+  title: "The Most Protected Bus in America",
+  narrative: `
+    <p>The bus to Jackson, Mississippi leaves Montgomery under the most extraordinary security escort in the history of American public transportation.</p>
+
+    <p>National Guard troops line the highway. Highway patrol cars ride ahead and behind. Helicopters circle overhead. Military planes track the bus's progress. At every overpass, soldiers stand watch.</p>
+
+    <p>All of this&mdash;the soldiers, the helicopters, the planes&mdash;to allow a handful of American citizens to do what the Supreme Court of the United States has already said they have every right to do: ride a bus and use a waiting room.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The irony was not lost on the riders or the press. It had taken a firebombing, multiple mob attacks, hundreds of injuries, an international outcry, and a direct confrontation between the federal government and two state governments to produce a single safely escorted bus ride through Alabama. The federal government could have enforced the Boynton ruling from the start. It chose not to until the political cost of inaction became greater than the political cost of acting.
+    </div>
+
+    <figure class="scene-photo">
+      <img src="nationalguard.webp" alt="National Guard soldiers with rifles escorting the Freedom Riders' bus">
+      <figcaption>National Guard troops with rifles stand guard alongside the Freedom Riders' bus. It took a firebombing, mob attacks, and an international outcry before the government provided this level of protection for citizens exercising their constitutional rights.</figcaption>
+    </figure>
+
+    <p>The ride is eerily quiet. The violence of the past ten days hangs in the air. You stare out the window at the green Alabama countryside sliding into Mississippi. The soldiers on the overpasses grow thinner as you cross the state line. Mississippi has its own plan for you.</p>
+
+    <p>The bus crosses into Mississippi. The Jackson city limits sign appears. You feel your stomach tighten. You know exactly what is about to happen. You chose it.</p>
+  `,
+  prompt: null,
+  choices: [],
+  auto_next: "scene10"
+},
+
+// ------ SCENE 10: JACKSON, MISSISSIPPI ------
+scene10: {
+  location: "Jackson, Mississippi",
+  date: "May 24, 1961",
+  stop: "jackson",
+  title: "Arrested",
+  narrative: `
+    <p>The bus pulls into the Jackson, Mississippi Trailways station. There are no mobs. Instead, rows of Jackson city police stand in formation. Behind them, paddy wagons are already waiting, engines running.</p>
+
+    <p>Captain Ray, head of the Jackson police, meets the riders as they step off the bus. His voice is almost polite.</p>
+
+    <p><strong>"Move on,"</strong> he says, gesturing toward the "Colored" waiting room.</p>
+
+    <p>You walk past him, straight toward the "White Only" waiting room. You step through the door.</p>
+
+    <p>You are arrested within thirty seconds.</p>
+
+    <p>The charge is <span class="vocab-term" data-def="A vague charge used across the South to arrest civil rights activists for any act that challenged segregation. It carried up to four months in jail and a $200 fine.">breach of peace</span>. Not violation of segregation laws&mdash;Mississippi is careful about that, because segregation in interstate facilities is now unconstitutional. Instead, they charge you with "disturbing the peace" simply for walking into a room.</p>
+
+    <p>You are processed through Jackson City Jail in minutes. The trial, if you can call it that, lasts less than an hour. The verdict is guilty. The sentence: sixty days in jail, a $200 fine. When your NAACP attorney announces you will appeal, you are told you will serve your time at <strong>Parchman Farm</strong>&mdash;the Mississippi State Penitentiary, one of the most feared prisons in America.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> Over the course of the summer of 1961, more than 300 Freedom Riders were arrested in Jackson, Mississippi using this same procedure. They were processed efficiently, convicted quickly, and sent to Parchman Farm, where they were subjected to harsh conditions including having their mattresses taken, being blasted with fire hoses, and being placed in maximum security cells. The riders responded by singing freedom songs so loudly that the warden threatened to take their mattresses if they didn't stop. "Take our mattresses," they said. "We didn't come here for comfort."
+    </div>
+
+    <figure class="scene-photo">
+      <img src="individualmugshot.jpg" alt="Freedom Rider mugshot, Jackson Police Department, June 21, 1961">
+      <figcaption>A Freedom Rider's mugshot, Jackson Police Department, June 21, 1961. She is smiling. Hundreds of riders were processed through this same booking procedure over the summer of 1961.</figcaption>
+    </figure>
+
+    <p>At Parchman, you are given a number. Your clothes are taken. You are placed in a cell in the maximum security wing. The guards tell you that if you renounce the Freedom Ride and agree to leave Mississippi and never return, you can go free.</p>
+  `,
+  prompt: "The guard is waiting for your answer. What do you say?",
+  choices: [
+    {
+      label: "A",
+      text: "\"No. I'll serve every day of my sentence.\"",
+      consequence: `<p>The guard shakes his head like you're crazy and walks away. That night, through the concrete walls of Parchman Farm, you hear something. Singing. The other Freedom Riders, in cells up and down the block, are singing. You recognize the song&mdash;"We Shall Overcome." You press your face to the bars and you sing too.</p>
+      <p>You did not come to Mississippi for comfort. You came to Mississippi because the law of the United States of America says you are free, and Mississippi says you are not, and someone had to stand in that gap.</p>
+      <p>You are standing in it now.</p>`,
+      next: "epilogue"
+    },
+    {
+      label: "B",
+      text: "You say nothing. Your silence is your answer.",
+      consequence: `<p>The guard waits. You look at him and say nothing. He writes something on his clipboard and moves to the next cell. You hear him make the same offer. You hear the same silence from the next rider. And the next. And the next.</p>
+      <p>That night, you lie on the concrete floor&mdash;they have taken your mattress&mdash;and you listen to the Freedom Riders singing in the dark. Cell by cell, voice by voice, the song passes through the walls of Parchman Farm like water through stone.</p>`,
+      next: "epilogue"
+    },
+    {
+      label: "C",
+      text: "\"I'll leave when the 'White Only' signs come down. Not before.\"",
+      consequence: `<p>The guard stares at you. For a moment, something flickers across his face&mdash;confusion, maybe, or something he won't let himself name. Then he turns and walks away without another word.</p>
+      <p>That night, the singing starts. Every Freedom Rider in Parchman, in cell after cell, singing freedom songs into the Mississippi dark. The warden sends guards to tell them to stop. They sing louder. The warden threatens to take their mattresses. They keep singing. The mattresses are taken. They sleep on concrete and keep singing.</p>
+      <p>The signs are still up. But you are here, and you are not leaving, and the whole world knows it.</p>`,
+      next: "epilogue"
+    }
+  ]
+},
+
+// ------ EPILOGUE ------
+epilogue: {
+  location: "Epilogue",
+  date: "",
+  stop: "jackson",
+  title: "What Happened Next",
+  narrative: `
+    <div class="epilogue-section">
+      <p>You served your time at Parchman Farm. You were not the last.</p>
+    </div>
+
+    <figure class="scene-photo">
+      <img src="mugshots.jpg" alt="Grid of Freedom Rider mugshots from Jackson, Mississippi, 1961">
+      <figcaption>Freedom Rider mugshots, Jackson Police Department, 1961. Black and white, young and old, from every corner of the country. Over 400 riders were arrested that summer. Every one of them refused to pay their fines.</figcaption>
+    </figure>
+
+    <div class="epilogue-section">
+      <h3>The Summer of 1961</h3>
+      <p>Over <strong>400 Freedom Riders</strong> followed that summer, riding buses into Jackson, Mississippi and other cities across the South. They came from every state in the union. They were Black and white, young and old, students and professors, ministers and rabbis. Every one of them was arrested. Every one of them refused to pay their fines. They filled the jails of Mississippi until the jails could hold no more.</p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>September 22, 1961</h3>
+      <p>Under intense pressure from the Kennedy administration and the glare of international media coverage, the <span class="vocab-term" data-def="The Interstate Commerce Commission was the federal agency that regulated interstate bus and rail travel. Its September 1961 order finally put enforcement teeth behind the Supreme Court rulings that had been ignored for years.">Interstate Commerce Commission (ICC)</span> issued a sweeping order: <strong>all interstate buses and terminals must be fully desegregated, effective November 1, 1961.</strong> "White" and "Colored" signs must come down. Segregated waiting rooms, restrooms, and lunch counters in bus and train stations were outlawed with actual enforcement mechanisms.</p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>November 1, 1961</h3>
+      <p><strong>The signs came down.</strong> Not everywhere at once, and not without resistance. But they came down. The ICC order succeeded where the Supreme Court ruling alone had failed&mdash;because the Freedom Riders had made the cost of inaction impossible to bear.</p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Riders</h3>
+      <ul>
+        <li><strong>John Lewis</strong> went on to serve 33 years in the United States Congress, representing Georgia's 5th district until his death in 2020. He called the Freedom Rides the most important thing he ever did.</li>
+        <li><strong>Diane Nash</strong> continued to be one of the most important strategists of the Civil Rights Movement, helping to plan the 1963 Birmingham campaign and the Selma voting rights movement.</li>
+        <li><strong>James Farmer</strong> continued to lead CORE and later served as Assistant Secretary of Health, Education, and Welfare.</li>
+        <li><strong>Many riders</strong> suffered lasting physical injuries, PTSD, and economic retaliation. Some lost jobs, scholarships, and family relationships. Most said they would do it again.</li>
+      </ul>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Cost of Doing What's Right</h3>
+      <p>The Freedom Riders broke no moral law. They sat in seats on public buses. They walked through doors marked "White Only." They did not raise a fist or throw a stone. And yet, in Jackson, Mississippi, they were arrested, convicted of "breach of peace," and sentenced to time at Parchman Farm&mdash;one of the most brutal prisons in America.</p>
+      <p>Those convictions followed them home. <strong>Several riders were expelled from their colleges and universities</strong> for having criminal records. Others lost scholarships that had taken years to earn. Some were fired from jobs or found that no one would hire them. Parents were harassed. Landlords refused to rent to them. In a society that treated an arrest record as proof of bad character, these young people carried a mark that had nothing to do with who they were&mdash;and everything to do with what they stood for.</p>
+      <p>This is one of the hardest truths about <strong>nonviolent civil disobedience</strong>: even when your cause is just, even when history eventually proves you right, the consequences are real and immediate. An arrest record doesn't come with an asterisk that says <em>"this person was fighting for justice."</em> The legal system does not distinguish between someone who broke a window and someone who sat in the wrong seat to change the world. The Freedom Riders accepted this. They knew that choosing to do what was right meant accepting punishment for it&mdash;and that was part of the point. Their willingness to suffer unjust consequences was what forced the nation to confront just how unjust the system really was.</p>
+      <p>It would take <strong>decades</strong> for many of those convictions to be overturned. Some riders never saw their records cleared in their lifetimes.</p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>Why It Matters</h3>
+      <p>The Freedom Rides proved something that remains true: <strong>rights that exist only on paper are not rights at all.</strong> The Supreme Court had ruled. The law was clear. But until ordinary people&mdash;many of them barely older than you are now&mdash;were willing to put their bodies on the line, the law meant nothing.</p>
+      <p>They did not ride because they were fearless. They rode because they decided that the cause was greater than their fear.</p>
+      <p>The question the Freedom Riders asked in 1961 is the question every generation must answer: <em>When the law says one thing and the reality says another, who will stand in the gap?</em></p>
+    </div>
+  `,
+  prompt: null,
+  choices: [],
+  isEpilogue: true
+}
+
+};
+
+// ============================================================
+// GAME ENGINE
+// ============================================================
+const freedomAudio = document.getElementById('freedom-audio');
+freedomAudio.volume = 0.4;
+
+function playAudio() {
+  freedomAudio.currentTime = 0;
+  freedomAudio.play().catch(() => {}); // Ignore autoplay restrictions silently
+}
+
+function fadeOutAudio(duration = 2000) {
+  const step = 50;
+  const volumeStep = freedomAudio.volume / (duration / step);
+  const fade = setInterval(() => {
+    if (freedomAudio.volume - volumeStep <= 0) {
+      freedomAudio.volume = 0;
+      freedomAudio.pause();
+      freedomAudio.volume = 0.4; // Reset for next play
+      clearInterval(fade);
+    } else {
+      freedomAudio.volume -= volumeStep;
+    }
+  }, step);
+}
+
+function startGame() {
+  playAudio();
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('map-panel').classList.add('active');
+  document.getElementById('game-container').classList.add('active');
+  initMap();
+  renderScene('scene1');
+}
+
+function renderScene(sceneId) {
+  state.currentScene = sceneId;
+  const scene = scenes[sceneId];
+  const container = document.getElementById('game-container');
+
+  if (scene.stop) {
+    updateRouteMap(scene.stop, scene.location, scene.date);
+  }
+
+  let title = scene.title;
+  if (sceneId === 'scene6') {
+    title = state.busChoice === 'greyhound' ? 'The Burning Bus' : 'Ambush on the Trailways';
+  }
+
+  let html = '<div class="fade-in">';
+
+  if (scene.location) {
+    html += `<div class="scene-location">${scene.location}</div>`;
+  }
+  if (scene.date) {
+    html += `<div class="scene-date">${scene.date}</div>`;
+  }
+  if (title) {
+    html += `<div class="scene-title">${title}</div>`;
+  }
+
+  html += `<div class="scene-narrative">${scene.narrative}</div>`;
+
+  if (scene.choices && scene.choices.length > 0) {
+    if (scene.prompt) {
+      html += `<div class="choice-prompt">${scene.prompt}</div>`;
+    }
+    html += '<div class="choices">';
+    scene.choices.forEach((choice, i) => {
+      html += `<button class="choice-btn" onclick="makeChoice('${sceneId}', ${i})">
+        <span class="choice-label">${choice.label}.</span> ${choice.text}
+      </button>`;
+    });
+    html += '</div>';
+  } else if (scene.auto_next) {
+    html += `<button class="continue-btn" onclick="renderScene('${scene.auto_next}')">Continue</button>`;
+  } else if (scene.isEpilogue) {
+    playAudio();
+    html += `
+    <div class="reflection-section">
+      <h2>Reflection Questions</h2>
+      <p class="reflection-intro">Answer the following questions thoughtfully and in complete sentences. When you are finished, enter your name and click "Save as PDF" to download your response for submission.</p>
+
+      <div class="name-field">
+        <label for="student-name">Your Name</label>
+        <input type="text" id="student-name" placeholder="First and Last Name">
+      </div>
+
+      <div class="reflection-field">
+        <label>1. The Freedom Riders knew they would face violence before they ever boarded the bus. Why do you think they chose to go anyway? What would you have considered if you were making that decision in 1961?</label>
+        <textarea id="reflection-1" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-field">
+        <label>2. The federal government — including the FBI, the Justice Department, and the White House — knew about the planned violence in Alabama and chose not to prevent it. Why do you think they didn't act sooner? What finally forced them to intervene?</label>
+        <textarea id="reflection-2" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-field">
+        <label>3. No matter what choices you made in this simulation, you ended up arrested in Jackson, Mississippi. What does that tell you about what the Freedom Riders were actually able to control — and what they weren't? How did they turn the thing they couldn't control (the injustice of the system) into something that ultimately changed the country?</label>
+        <textarea id="reflection-3" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-actions">
+        <button class="save-pdf-btn" onclick="savePDF()">Save as PDF</button>
+        <button class="restart-btn" onclick="restartGame()">Start Over</button>
+      </div>
+      <p class="pdf-note">Your PDF will include your name, your responses, and the choices you made during the simulation.</p>
+    </div>`;
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function makeChoice(sceneId, choiceIndex) {
+  const scene = scenes[sceneId];
+  const choice = (sceneId === 'scene6')
+    ? (state.busChoice === 'greyhound' ? scene._greyhoundChoices : scene._trailwaysChoices)[choiceIndex]
+    : scene.choices[choiceIndex];
+
+  // Fade out intro music on first choice
+  if (state.decisions.length === 0) {
+    fadeOutAudio();
+  }
+
+  state.decisions.push({ scene: sceneId, choice: choice.label });
+
+  if (choice.effect) choice.effect();
+
+  const container = document.getElementById('game-container');
+  const choicesEl = container.querySelector('.choices');
+  if (choicesEl) {
+    let consequenceHtml = `<div class="consequence fade-in">${choice.consequence}</div>`;
+    consequenceHtml += `<button class="continue-btn fade-in" onclick="renderScene('${choice.next}')">Continue</button>`;
+    choicesEl.outerHTML = consequenceHtml;
+
+    const promptEl = container.querySelector('.choice-prompt');
+    if (promptEl) promptEl.style.display = 'none';
+  }
+}
+
+function restartGame() {
+  freedomAudio.pause();
+  freedomAudio.currentTime = 0;
+  freedomAudio.volume = 0.4;
+
+  state.currentScene = null;
+  state.busChoice = null;
+  state.decisions = [];
+  state.visitedStops = [];
+
+  document.getElementById('map-panel').classList.remove('active');
+  document.getElementById('game-container').classList.remove('active');
+  document.getElementById('game-container').innerHTML = '';
+  document.getElementById('title-screen').style.display = 'flex';
+
+  // Reset map visuals
+  document.querySelectorAll('.city-dot-outer').forEach(d => d.classList.remove('visited', 'current'));
+  document.querySelectorAll('.pulse-ring').forEach(r => r.classList.remove('active'));
+  document.querySelectorAll('.state-shape').forEach(s => s.classList.remove('active-state'));
+  document.querySelectorAll('.danger-icon').forEach(d => d.classList.remove('visible'));
+  document.getElementById('callout-location').textContent = '';
+  document.getElementById('callout-date').textContent = '';
+
+  window.scrollTo({ top: 0 });
+}
+
+// ============================================================
+// PDF GENERATION
+// ============================================================
+function savePDF() {
+  const name = document.getElementById('student-name').value.trim();
+  const r1 = document.getElementById('reflection-1').value.trim();
+  const r2 = document.getElementById('reflection-2').value.trim();
+  const r3 = document.getElementById('reflection-3').value.trim();
+
+  if (!name) {
+    alert('Please enter your name before saving.');
+    document.getElementById('student-name').focus();
+    return;
+  }
+
+  if (!r1 || !r2 || !r3) {
+    alert('Please answer all three reflection questions before saving.');
+    return;
+  }
+
+  // Build choices summary
+  const choiceLabels = {
+    scene1: 'Scene 1 — The Call',
+    scene2: 'Scene 2 — Nonviolence Training',
+    scene3: 'Scene 3 — The Last Supper',
+    scene4: 'Scene 4 — Rock Hill, SC',
+    scene5: 'Scene 5 — Atlanta',
+    scene6: 'Scene 6 — Anniston, AL',
+    scene7: 'Scene 7 — Birmingham',
+    scene8: 'Scene 8 — Montgomery',
+    scene10: 'Scene 10 — Jackson, MS'
+  };
+
+  let choicesHtml = '';
+  state.decisions.forEach(d => {
+    const label = choiceLabels[d.scene] || d.scene;
+    choicesHtml += `<tr><td style="padding:4px 12px 4px 0;font-weight:600;white-space:nowrap">${label}</td><td style="padding:4px 0">Choice ${d.choice}</td></tr>`;
+  });
+
+  if (state.busChoice) {
+    choicesHtml += `<tr><td style="padding:4px 12px 4px 0;font-weight:600">Bus Selected</td><td style="padding:4px 0">${state.busChoice.charAt(0).toUpperCase() + state.busChoice.slice(1)}</td></tr>`;
+  }
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+<title>Freedom Ride Reflection — ${name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Source Sans Pro', Arial, sans-serif;
+    color: #2c2416;
+    padding: 0.5in 0.75in;
+    line-height: 1.6;
+    font-size: 11pt;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #1a3a5c;
+  }
+  .header h1 {
+    font-size: 20pt;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #1a3a5c;
+    margin-bottom: 2px;
+  }
+  .header .sub {
+    font-size: 10pt;
+    color: #8b2500;
+    font-weight: 600;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 10pt;
+  }
+  .meta-item { }
+  .meta-label { font-weight: 700; color: #1a3a5c; }
+  h2 {
+    font-size: 13pt;
+    color: #1a3a5c;
+    margin: 20px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+  }
+  .question {
+    margin-bottom: 18px;
+  }
+  .question .q-label {
+    font-weight: 700;
+    font-size: 10pt;
+    color: #1a3a5c;
+    margin-bottom: 4px;
+  }
+  .question .q-text {
+    font-size: 10pt;
+    margin-bottom: 6px;
+    color: #444;
+    font-style: italic;
+  }
+  .question .answer {
+    font-size: 11pt;
+    line-height: 1.7;
+    padding: 8px 0;
+    white-space: pre-wrap;
+  }
+  table {
+    font-size: 10pt;
+    border-collapse: collapse;
+  }
+  .footer {
+    margin-top: 30px;
+    padding-top: 12px;
+    border-top: 1px solid #ddd;
+    font-size: 8pt;
+    color: #999;
+    text-align: center;
+  }
+  @media print {
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Freedom Ride: 1961</h1>
+  <div class="sub">Simulation Reflection</div>
+</div>
+
+<div class="meta">
+  <div class="meta-item"><span class="meta-label">Student:</span> ${name}</div>
+  <div class="meta-item"><span class="meta-label">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+</div>
+
+<h2>Simulation Choices</h2>
+<table>${choicesHtml}</table>
+
+<h2>Reflection Questions</h2>
+
+<div class="question">
+  <div class="q-label">Question 1</div>
+  <div class="q-text">The Freedom Riders knew they would face violence before they ever boarded the bus. Why do you think they chose to go anyway? What would you have considered if you were making that decision in 1961?</div>
+  <div class="answer">${r1}</div>
+</div>
+
+<div class="question">
+  <div class="q-label">Question 2</div>
+  <div class="q-text">The federal government — including the FBI, the Justice Department, and the White House — knew about the planned violence in Alabama and chose not to prevent it. Why do you think they didn't act sooner? What finally forced them to intervene?</div>
+  <div class="answer">${r2}</div>
+</div>
+
+<div class="question">
+  <div class="q-label">Question 3</div>
+  <div class="q-text">No matter what choices you made in this simulation, you ended up arrested in Jackson, Mississippi. What does that tell you about what the Freedom Riders were actually able to control — and what they weren't? How did they turn the thing they couldn't control (the injustice of the system) into something that ultimately changed the country?</div>
+  <div class="answer">${r3}</div>
+</div>
+
+<div class="footer">
+  Freedom Ride: 1961 — Historical Simulation for 9th Grade U.S. History
+</div>
+
+</body>
+</html>`);
+
+  printWindow.document.close();
+
+  // Wait for fonts to load, then trigger print dialog (Save as PDF)
+  setTimeout(() => {
+    printWindow.print();
+  }, 600);
+}
+</script>
+
+</body>
+</html>
