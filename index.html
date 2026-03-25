@@ -779,6 +779,7 @@
 
 <!-- ===== AUDIO ===== -->
 <audio id="freedom-audio" src="We%20shall%20overcome.mp3" preload="auto"></audio>
+<audio id="epilogue-audio" src="Buses%20Are%20A%20Coming%20Freedom%20Song.mp4" preload="auto"></audio>
 
 <!-- ===== MAP PANEL ===== -->
 <div id="map-panel">
@@ -1601,11 +1602,18 @@ epilogue: {
 // GAME ENGINE
 // ============================================================
 const freedomAudio = document.getElementById('freedom-audio');
+const epilogueAudio = document.getElementById('epilogue-audio');
 freedomAudio.volume = 0.4;
+epilogueAudio.volume = 0.4;
 
 function playAudio() {
   freedomAudio.currentTime = 0;
-  freedomAudio.play().catch(() => {}); // Ignore autoplay restrictions silently
+  freedomAudio.play().catch(() => {});
+}
+
+function playEpilogueAudio() {
+  epilogueAudio.currentTime = 0;
+  epilogueAudio.play().catch(() => {});
 }
 
 function fadeOutAudio(duration = 2000) {
@@ -1684,7 +1692,7 @@ function renderScene(sceneId) {
   } else if (scene.auto_next) {
     html += `<button class="continue-btn" onclick="renderScene('${scene.auto_next}')">Continue</button>`;
   } else if (scene.isEpilogue) {
-    playAudio();
+    playEpilogueAudio();
     html += `
     <div class="reflection-section">
       <h2>Reflection Questions</h2>
@@ -1847,6 +1855,9 @@ function restartGame() {
   freedomAudio.pause();
   freedomAudio.currentTime = 0;
   freedomAudio.volume = 0.4;
+  epilogueAudio.pause();
+  epilogueAudio.currentTime = 0;
+  epilogueAudio.volume = 0.4;
 
   state.currentScene = null;
   state.busChoice = null;
