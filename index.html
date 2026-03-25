@@ -408,6 +408,25 @@
 
   .continue-btn:hover { background: #24506e; }
 
+  .back-btn {
+    display: inline-block;
+    background: none;
+    border: 1px solid #999;
+    color: #666;
+    padding: 0.4rem 1rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+  }
+  .back-btn:hover {
+    background: #eee;
+    color: #333;
+    border-color: #666;
+  }
+
   .epilogue-section { margin-bottom: 2rem; }
 
   .epilogue-section h3 {
@@ -673,6 +692,62 @@
   }
   .will-submit-btn:hover { background: var(--accent-light); }
 
+  /* ===== VIDEO MODAL ===== */
+  .video-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 1100;
+    padding: 1rem;
+  }
+  .video-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .video-modal {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+  }
+  .video-modal h2 {
+    font-family: 'Libre Baskerville', serif;
+    color: #fff;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .video-modal p.video-subtitle {
+    color: #ccc;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+  .video-modal video {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 4px;
+    background: #000;
+  }
+  .video-close-btn {
+    display: inline-block;
+    margin-top: 1.2rem;
+    padding: 0.7rem 2rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .video-close-btn:hover { background: var(--accent-light); }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 700px) {
     #title-screen h1 { font-size: 2.2rem; }
@@ -806,7 +881,8 @@ const state = {
   currentScene: null,
   busChoice: null,
   decisions: [],
-  visitedStops: []
+  visitedStops: [],
+  sceneHistory: []
 };
 
 // ============================================================
@@ -926,7 +1002,7 @@ scene1: {
     <p>The flyer is from the <span class="vocab-term" data-def="Congress of Racial Equality, a civil rights organization founded in 1942 that pioneered nonviolent direct action in the United States.">Congress of Racial Equality</span>. It announces a plan to send an interracial group on public buses from Washington, D.C., to New Orleans, Louisiana&mdash;deliberately using "white only" waiting rooms, lunch counters, and restrooms at every stop along the way.</p>
 
     <div class="historical-note">
-      <strong>Historical context:</strong> In December 1960, the U.S. Supreme Court ruled in <a href="https://www.oyez.org/cases/1960/7" target="_blank" rel="noopener"><em>Boynton v. Virginia</em></a> that segregation in interstate bus terminals was unconstitutional, building on the earlier <em>Morgan v. Virginia</em> (1946) ruling against segregated seating on interstate buses. But across the South, "White" and "Colored" signs still hung over every waiting room, restroom, and lunch counter. No one was enforcing the law. CORE director James Farmer decided to force the issue.
+      <strong>Historical context:</strong> In December 1960, the U.S. Supreme Court ruled in <a href="https://www.oyez.org/cases/1960/7" target="_blank" rel="noopener"><em>Boynton v. Virginia</em></a> that segregation in interstate bus terminals was unconstitutional, building on the earlier <a href="https://supreme.justia.com/cases/federal/us/328/373/" target="_blank" rel="noopener"><em>Morgan v. Virginia</em></a> (1946) ruling against segregated seating on interstate buses. But across the South, "White" and "Colored" signs still hung over every waiting room, restroom, and lunch counter. No one was enforcing the law. CORE director James Farmer decided to force the issue.
     </div>
 
     <figure class="scene-photo">
@@ -964,7 +1040,7 @@ scene2: {
   stop: "dc",
   title: "Nonviolence Training",
   narrative: `
-    <p>For three days, you train at the Fellowship House in Washington. The sessions are led by CORE veterans who have studied Gandhian nonviolence. This is not about being passive. It is about discipline under fire.</p>
+    <p>For three days, you train at the Fellowship House in Washington. The sessions are led by CORE veterans who have studied <a href="https://www.mkgandhi.org/nonviolence/g_non.php" target="_blank" rel="noopener">Gandhian nonviolence</a>. This is not about being passive. It is about discipline under fire.</p>
 
     <p>The room is set up like a bus station lunch counter. You sit on a stool. Other trainees play the roles of hostile white segregationists. They crowd behind you. They scream slurs inches from your face. They pour water on your head. They shove you off the stool.</p>
 
@@ -1022,6 +1098,11 @@ scene3: {
     <div class="historical-note">
       <strong>Historical context:</strong> The FBI did more than simply decline to help. FBI Director J. Edgar Hoover passed the Freedom Riders' travel plans to local segregationist officials in Alabama. The bureau knew violence was being organized and did nothing to stop it.
     </div>
+
+    <figure class="scene-photo">
+      <img src="FBImemo.jpg" alt="FBI memo regarding the Freedom Rides">
+      <figcaption>An FBI memo documenting the bureau's awareness of the Freedom Riders' plans. Despite knowing violence was being organized, the FBI chose not to intervene.</figcaption>
+    </figure>
 
     <figure class="scene-photo">
       <img src="ridersboardingthebus.webp" alt="Freedom Riders boarding the Greyhound bus in Washington, D.C.">
@@ -1487,9 +1568,9 @@ epilogue: {
     <div class="epilogue-section">
       <h3>The Riders</h3>
       <ul>
-        <li><strong>John Lewis</strong> went on to serve 33 years in the United States Congress, representing Georgia's 5th district until his death in 2020. He called the Freedom Rides the most important thing he ever did.</li>
-        <li><strong>Diane Nash</strong> continued to be one of the most important strategists of the Civil Rights Movement, helping to plan the 1963 Birmingham campaign and the Selma voting rights movement.</li>
-        <li><strong>James Farmer</strong> continued to lead CORE and later served as Assistant Secretary of Health, Education, and Welfare.</li>
+        <li><strong><a href="https://nmaahc.si.edu/explore/stories/john-lewis" target="_blank" rel="noopener">John Lewis</a></strong> went on to serve 33 years in the United States Congress, representing Georgia's 5th district until his death in 2020. He called the Freedom Rides the most important thing he ever did.</li>
+        <li><strong><a href="https://awpc.cattcenter.iastate.edu/directory/diane-nash" target="_blank" rel="noopener">Diane Nash</a></strong> continued to be one of the most important strategists of the Civil Rights Movement, helping to plan the 1963 Birmingham campaign and the Selma voting rights movement.</li>
+        <li><strong><a href="https://www.thecongressofracialequality.org/james-farmer.html" target="_blank" rel="noopener">James Farmer</a></strong> continued to lead CORE and later served as Assistant Secretary of Health, Education, and Welfare.</li>
         <li><strong>Many riders</strong> suffered lasting physical injuries, PTSD, and economic retaliation. Some lost jobs, scholarships, and family relationships. Most said they would do it again.</li>
       </ul>
     </div>
@@ -1553,6 +1634,10 @@ function startGame() {
 
 
 function renderScene(sceneId) {
+  // Track history for back button (don't add duplicates if going back)
+  if (state.sceneHistory[state.sceneHistory.length - 1] !== sceneId) {
+    state.sceneHistory.push(sceneId);
+  }
   state.currentScene = sceneId;
   const scene = scenes[sceneId];
   const container = document.getElementById('game-container');
@@ -1567,6 +1652,11 @@ function renderScene(sceneId) {
   }
 
   let html = '<div class="fade-in">';
+
+  // Back button (not on scene1)
+  if (sceneId !== 'scene1') {
+    html += `<button class="back-btn" onclick="goBack()">&larr; Back</button>`;
+  }
 
   if (scene.location) {
     html += `<div class="scene-location">${scene.location}</div>`;
@@ -1655,6 +1745,16 @@ function makeChoice(sceneId, choiceIndex) {
     return;
   }
 
+  // Show historical video after Anniston scene (scene6)
+  if (sceneId === 'scene6') {
+    state._pendingChoice = choice;
+    const title = state.busChoice === 'greyhound'
+      ? 'The Firebombing of the Greyhound Bus'
+      : 'Ambush on the Trailways Bus';
+    showVideoModal(title, 'Archival footage from the 1961 Freedom Rides — Anniston, Alabama');
+    return;
+  }
+
   applyChoice(choice);
 }
 
@@ -1707,6 +1807,42 @@ function submitWill() {
   }
 }
 
+function goBack() {
+  if (state.sceneHistory.length > 1) {
+    state.sceneHistory.pop(); // remove current
+    const prevScene = state.sceneHistory[state.sceneHistory.length - 1];
+    // Remove the last decision if we're going back from a choice
+    if (state.decisions.length > 0) {
+      state.decisions.pop();
+    }
+    renderScene(prevScene);
+  }
+}
+
+function showVideoModal(title, subtitle) {
+  document.getElementById('video-modal-title').textContent = title;
+  document.getElementById('video-modal-subtitle').textContent = subtitle;
+  const player = document.getElementById('video-player');
+  player.currentTime = 0;
+  document.getElementById('video-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  player.play().catch(() => {}); // autoplay if allowed
+}
+
+function closeVideoModal() {
+  const player = document.getElementById('video-player');
+  player.pause();
+  player.currentTime = 0;
+  document.getElementById('video-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+
+  // Continue with the pending choice
+  if (state._pendingChoice) {
+    applyChoice(state._pendingChoice);
+    state._pendingChoice = null;
+  }
+}
+
 function restartGame() {
   freedomAudio.pause();
   freedomAudio.currentTime = 0;
@@ -1716,6 +1852,7 @@ function restartGame() {
   state.busChoice = null;
   state.decisions = [];
   state.visitedStops = [];
+  state.sceneHistory = [];
   state.will = null;
 
   document.getElementById('map-panel').classList.remove('active');
@@ -1984,6 +2121,19 @@ ${state.will ? `
     </div>
 
     <button class="will-submit-btn" onclick="submitWill()">I Understand the Risks. I Choose to Ride.</button>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="video-overlay" id="video-overlay">
+  <div class="video-modal">
+    <h2 id="video-modal-title">Historical Footage</h2>
+    <p class="video-subtitle" id="video-modal-subtitle">Archival film from the 1961 Freedom Rides</p>
+    <video id="video-player" controls>
+      <source src="freedomridefilm.mp4" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
+    <button class="video-close-btn" onclick="closeVideoModal()">Continue</button>
   </div>
 </div>
 
